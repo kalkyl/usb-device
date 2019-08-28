@@ -20,10 +20,7 @@ pub trait UsbClass<B: UsbBus> {
     ///
     /// Generally errors returned by `DescriptorWriter`. Implementors should propagate any errors
     /// using `?`.
-    fn get_configuration_descriptors(&self, writer: &mut DescriptorWriter) -> Result<()> {
-        let _ = writer;
-        Ok(())
-    }
+    fn get_configuration_descriptors(&self, writer: &mut DescriptorWriter) -> Result<()>;
 
     /// Gets a class-specific string descriptor.
     ///
