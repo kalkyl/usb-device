@@ -4,7 +4,7 @@ use crate::bus::{UsbBus, PollResult};
 use crate::class::{UsbClass, ControlIn, ControlOut};
 use crate::control;
 use crate::control_pipe::ControlPipe;
-use crate::descriptor::{DescriptorWriter, descriptor_type, lang_id};
+use crate::descriptor::{DescriptorWriter, BosWriter, descriptor_type, lang_id};
 use crate::endpoint::EndpointAddress;
 pub use crate::device_builder::{UsbDeviceBuilder, UsbVidPid};
 
@@ -427,6 +427,19 @@ impl<B: UsbBus> UsbDevice<B> {
         }
 
         match dtype {
+            descriptor_type::BOS => accept_writer(xfer, |w| {
+                let mut bw = BosWriter::new(w);
+                bw.bos()?;
+
+                for cls in classes {
+                    cls.get_bos_descriptors(&mut bw)?;
+                }
+
+                bw.end_bos();
+
+                Ok(())
+            }),
+
             descriptor_type::DEVICE => accept_writer(xfer, |w| w.device(config)),
 
             descriptor_type::CONFIGURATION => accept_writer(xfer, |w| {
