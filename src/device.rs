@@ -5,7 +5,7 @@ use crate::class::{UsbClass, ControlIn, ControlOut};
 use crate::control;
 use crate::control_pipe::ControlPipe;
 use crate::descriptor::{DescriptorWriter, BosWriter, descriptor_type, lang_id};
-use crate::endpoint::EndpointAddress;
+use crate::endpoint::{EndpointAddress};
 pub use crate::device_builder::{UsbDeviceBuilder, UsbVidPid};
 
 /// The global state of the USB device.

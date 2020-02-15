@@ -1,6 +1,6 @@
 use crate::{Result, UsbError};
-use crate::bus::UsbBus;
 use crate::allocator::{InterfaceNumber, StringIndex};
+use crate::bus::UsbBus;
 use crate::descriptor::{DescriptorWriter, BosWriter};
 use crate::control;
 use crate::control_pipe::ControlPipe;
