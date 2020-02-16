@@ -75,6 +75,9 @@ pub struct EndpointConfig {
     /// If `ep` is an endpoint in the same direction, this means that the two endpoints belong to
     /// different alternate settings for the interface and may never be enabled at the same time.
     pub pair_of: Option<EndpointAddress>,
+
+    /// Decides whether to send additional data in the endpoint descriptor necessary for the isochronous audio streaming endpoint
+    pub is_audio_streaming: bool
 }
 
 impl EndpointConfig {
@@ -85,6 +88,7 @@ impl EndpointConfig {
             max_packet_size,
             interval,
             pair_of: None,
+            is_audio_streaming: false
         }
     }
 

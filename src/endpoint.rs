@@ -1,6 +1,5 @@
 use crate::{Result, UsbDirection};
 
-/// USB endpoint descriptor information.
 pub struct EndpointDescriptor {
     /// Endpoint address.
     pub address: EndpointAddress,
@@ -11,8 +10,16 @@ pub struct EndpointDescriptor {
     /// Maximum packet size.
     pub max_packet_size: u16,
 
-    /// Poll interval for interrupt endpoints. 
+    /// Poll interval for interrupt endpoints.
     pub interval: u8,
+
+    /// Holds the audio streaming endpoint extension data
+    pub audio_streaming_extension: Option<AudioStreamingExtension>
+}
+
+pub struct AudioStreamingExtension {
+    /// Synchronization endpoint address for clock sync
+    pub synchronization_address: Option<EndpointAddress>,
 }
 
 /// Handle for a USB endpoint.
@@ -21,16 +28,24 @@ pub trait Endpoint {
     fn descriptor(&self) -> &EndpointDescriptor;
 
     /// Gets the endpoint address.
-    fn address(&self) -> EndpointAddress { self.descriptor().address }
+    fn address(&self) -> EndpointAddress {
+        self.descriptor().address
+    }
 
     /// Gets the endpoint transfer type.
-    fn ep_type(&self) -> EndpointType { self.descriptor().ep_type }
+    fn ep_type(&self) -> EndpointType {
+        self.descriptor().ep_type
+    }
 
     /// Gets the maximum packet size for the endpoint.
-    fn max_packet_size(&self) -> u16 { self.descriptor().max_packet_size }
+    fn max_packet_size(&self) -> u16 {
+        self.descriptor().max_packet_size
+    }
 
     /// Gets the poll interval for interrupt endpoints.
-    fn interval(&self) -> u8 { self.descriptor().interval }
+    fn interval(&self) -> u8 {
+        self.descriptor().interval
+    }
 
     /// Enables the endpoint with the specified configuration.
     fn enable(&mut self);
