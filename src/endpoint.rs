@@ -1,8 +1,8 @@
-use core::marker::PhantomData;
-use core::sync::atomic::{AtomicPtr, Ordering};
-use core::ptr;
-use crate::{Result, UsbDirection};
 use crate::bus::UsbBus;
+use crate::{Result, UsbDirection};
+use core::marker::PhantomData;
+use core::ptr;
+use core::sync::atomic::{AtomicPtr, Ordering};
 
 /// Trait for endpoint type markers.
 pub trait EndpointDirection {
@@ -54,7 +54,8 @@ pub struct Endpoint<'a, B: UsbBus, D: EndpointDirection> {
     ep_type: EndpointType,
     max_packet_size: u16,
     interval: u8,
-    _marker: PhantomData<D>
+    audio_streaming: bool,
+    _marker: PhantomData<D>,
 }
 
 impl<B: UsbBus, D: EndpointDirection> Endpoint<'_, B, D> {
@@ -63,15 +64,17 @@ impl<B: UsbBus, D: EndpointDirection> Endpoint<'_, B, D> {
         address: EndpointAddress,
         ep_type: EndpointType,
         max_packet_size: u16,
-        interval: u8) -> Endpoint<'_, B, D>
-    {
+        interval: u8,
+        audio_streaming: bool,
+    ) -> Endpoint<'_, B, D> {
         Endpoint {
             bus_ptr,
             address,
             ep_type,
             max_packet_size,
             interval,
-            _marker: PhantomData
+            audio_streaming,
+            _marker: PhantomData,
         }
     }
 
@@ -85,16 +88,28 @@ impl<B: UsbBus, D: EndpointDirection> Endpoint<'_, B, D> {
     }
 
     /// Gets the endpoint address including direction bit.
-    pub fn address(&self) -> EndpointAddress { self.address }
+    pub fn address(&self) -> EndpointAddress {
+        self.address
+    }
 
     /// Gets the endpoint transfer type.
-    pub fn ep_type(&self) -> EndpointType { self.ep_type }
+    pub fn ep_type(&self) -> EndpointType {
+        self.ep_type
+    }
 
     /// Gets the maximum packet size for the endpoint.
-    pub fn max_packet_size(&self) -> u16 { self.max_packet_size }
+    pub fn max_packet_size(&self) -> u16 {
+        self.max_packet_size
+    }
 
     /// Gets the poll interval for interrupt endpoints.
-    pub fn interval(&self) -> u8 { self.interval }
+    pub fn interval(&self) -> u8 {
+        self.interval
+    }
+
+    pub fn audio_streaming(&self) -> bool {
+        self.audio_streaming
+    }
 
     /// Sets the STALL condition for the endpoint.
     pub fn stall(&self) {

@@ -72,10 +72,10 @@ impl<B: UsbBus> UsbDevice<'_, B> {
         -> UsbDevice<'a, B>
     {
         let control_out = alloc.alloc(Some(0x00.into()), EndpointType::Control,
-            config.max_packet_size_0 as u16, 0).expect("failed to alloc control endpoint");
+            config.max_packet_size_0 as u16, 0, false).expect("failed to alloc control endpoint");
 
         let control_in = alloc.alloc(Some(0x80.into()), EndpointType::Control,
-            config.max_packet_size_0 as u16, 0).expect("failed to alloc control endpoint");
+            config.max_packet_size_0 as u16, 0, false).expect("failed to alloc control endpoint");
 
         let bus = alloc.freeze();
 
@@ -382,7 +382,7 @@ impl<B: UsbBus> UsbDevice<'_, B> {
                     }
                 },
 
-                (Recipient::Interface, Request::SET_INTERFACE, DEFAULT_ALTERNATE_SETTING_U16) => {
+                (Recipient::Interface, Request::SET_INTERFACE, alternate_settings) => {
                     // TODO: do something when alternate settings are implemented
                     xfer.accept().ok();
                 },
