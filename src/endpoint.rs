@@ -107,6 +107,7 @@ impl<B: UsbBus, D: EndpointDirection> Endpoint<'_, B, D> {
         self.interval
     }
 
+    /// Sets endpoint type to audio streaming endpoint (which has different descriptor structure)
     pub fn audio_streaming(&self) -> bool {
         self.audio_streaming
     }

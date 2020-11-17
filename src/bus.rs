@@ -276,6 +276,16 @@ impl<B: UsbBus> UsbBusAllocator<B> {
             .expect("alloc_ep failed")
     }
 
+    /// Allocates an isochronous endpoint.
+    ///
+    /// # Arguments
+    ///
+    /// * `max_packet_size` - Maximum packet size in bytes. Must be one of 8, 16, 32 or 64.
+    ///
+    /// # Panics
+    ///
+    /// Panics if endpoint allocation fails, because running out of endpoints or memory is not
+    /// feasibly recoverable.
     #[inline]
     pub fn isochronous<D: EndpointDirection>(
         &self,
