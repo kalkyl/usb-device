@@ -332,7 +332,7 @@ impl<B: UsbBus> UsbDevice<'_, B> {
 
             const CONFIGURATION_NONE_U16: u16 = CONFIGURATION_NONE as u16;
             const CONFIGURATION_VALUE_U16: u16 = CONFIGURATION_VALUE as u16;
-            const DEFAULT_ALTERNATE_SETTING_U16: u16 = DEFAULT_ALTERNATE_SETTING as u16;
+            // const DEFAULT_ALTERNATE_SETTING_U16: u16 = DEFAULT_ALTERNATE_SETTING as u16;
 
             match (req.recipient, req.request, req.value) {
                 (Recipient::Device, Request::CLEAR_FEATURE, Request::FEATURE_DEVICE_REMOTE_WAKEUP) => {
@@ -382,7 +382,7 @@ impl<B: UsbBus> UsbDevice<'_, B> {
                     }
                 },
 
-                (Recipient::Interface, Request::SET_INTERFACE, alternate_settings) => {
+                (Recipient::Interface, Request::SET_INTERFACE, _alternate_settings) => {
                     // TODO: do something when alternate settings are implemented
                     xfer.accept().ok();
                 },
