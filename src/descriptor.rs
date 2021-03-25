@@ -153,9 +153,14 @@ impl DescriptorWriter<'_> {
     ///   that do not conform to any class.
     /// * `function_sub_class` - Sub-class code. Depends on class.
     /// * `function_protocol` - Protocol code. Depends on class and sub-class.
-    pub fn iad(&mut self, first_interface: InterfaceNumber, interface_count: u8,
-        function_class: u8, function_sub_class: u8, function_protocol: u8) -> Result<()>
-    {
+    pub fn iad(
+        &mut self,
+        first_interface: InterfaceNumber,
+        interface_count: u8,
+        function_class: u8,
+        function_sub_class: u8,
+        function_protocol: u8,
+    ) -> Result<()> {
         if !self.write_iads {
             return Ok(());
         }
@@ -164,12 +169,13 @@ impl DescriptorWriter<'_> {
             descriptor_type::IAD,
             &[
                 first_interface.into(), // bFirstInterface
-                interface_count, // bInterfaceCount
+                interface_count,        // bInterfaceCount
                 function_class,
                 function_sub_class,
                 function_protocol,
-                0
-            ])?;
+                0,
+            ],
+        )?;
 
         Ok(())
     }
@@ -246,10 +252,10 @@ impl DescriptorWriter<'_> {
                     endpoint.address().into(), // bEndpointAddress
                     endpoint.ep_type() as u8,  // bmAttributes
                     mps as u8,
-                    (mps >> 8) as u8,    // wMaxPacketSize
-                    endpoint.interval(), // bInterval
-                    0,                   // bRefresh
-                    0,                   // bSynchAddress
+                    (mps >> 8) as u8,              // wMaxPacketSize
+                    endpoint.interval(),           // bInterval
+                    1,                             // bRefresh
+                    endpoint.sync_addr().unwrap(), // bSynchAddress
                 ],
             )?;
         } else {
@@ -264,6 +270,32 @@ impl DescriptorWriter<'_> {
                 ],
             )?;
         }
+
+        Ok(())
+    }
+    pub fn fb_endpoint<'e, B: UsbBus, D: EndpointDirection>(
+        &mut self,
+        endpoint: &Endpoint<'e, B, D>,
+    ) -> Result<()> {
+        match self.num_endpoints_mark {
+            Some(mark) => self.buf[mark] += 1,
+            None => return Err(UsbError::InvalidState),
+        };
+
+        let mps = endpoint.max_packet_size();
+
+        self.write(
+            descriptor_type::ENDPOINT,
+            &[
+                endpoint.address().into(), // bEndpointAddress
+                endpoint.ep_type() as u8,  // bmAttributes
+                mps as u8,
+                (mps >> 8) as u8, // wMaxPacketSize
+                1,                // bInterval
+                5,                // bRefresh,
+                0,                // bSynchAddress
+            ],
+        )?;
 
         Ok(())
     }

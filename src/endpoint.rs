@@ -44,6 +44,7 @@ pub enum EndpointType {
     Bulk = 0b10,
     /// Interrupt endpoint. Used for small amounts of time-critical reliable data.
     Interrupt = 0b11,
+    IsocAsync = 5,
 }
 
 /// Handle for a USB endpoint. The endpoint direction is constrained by the `D` type argument, which
@@ -55,6 +56,7 @@ pub struct Endpoint<'a, B: UsbBus, D: EndpointDirection> {
     max_packet_size: u16,
     interval: u8,
     audio_streaming: bool,
+    sync_addr: Option<u8>,
     _marker: PhantomData<D>,
 }
 
@@ -66,6 +68,7 @@ impl<B: UsbBus, D: EndpointDirection> Endpoint<'_, B, D> {
         max_packet_size: u16,
         interval: u8,
         audio_streaming: bool,
+        sync_addr: Option<u8>,
     ) -> Endpoint<'_, B, D> {
         Endpoint {
             bus_ptr,
@@ -74,6 +77,7 @@ impl<B: UsbBus, D: EndpointDirection> Endpoint<'_, B, D> {
             max_packet_size,
             interval,
             audio_streaming,
+            sync_addr,
             _marker: PhantomData,
         }
     }
@@ -110,6 +114,10 @@ impl<B: UsbBus, D: EndpointDirection> Endpoint<'_, B, D> {
     /// Sets endpoint type to audio streaming endpoint (which has different descriptor structure)
     pub fn audio_streaming(&self) -> bool {
         self.audio_streaming
+    }
+
+    pub fn sync_addr(&self) -> Option<u8> {
+        self.sync_addr
     }
 
     /// Sets the STALL condition for the endpoint.

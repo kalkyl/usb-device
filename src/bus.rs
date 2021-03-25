@@ -44,6 +44,18 @@ pub trait UsbBus: Sync + Sized {
         interval: u8,
     ) -> Result<EndpointAddress>;
 
+    fn alloc_ep_with_sync(
+        &mut self,
+        ep_dir: UsbDirection,
+        ep_addr: Option<EndpointAddress>,
+        ep_type: EndpointType,
+        max_packet_size: u16,
+        interval: u8,
+        sync_addr: u8,
+    ) -> Result<EndpointAddress> {
+        self.alloc_ep(ep_dir, ep_addr, ep_type, max_packet_size, interval)
+    }
+
     /// Enables and initializes the USB peripheral. Soon after enabling the device will be reset, so
     /// there is no need to perform a USB reset in this method.
     fn enable(&mut self);
@@ -219,7 +231,53 @@ impl<B: UsbBus> UsbBusAllocator<B> {
         self.bus
             .borrow_mut()
             .alloc_ep(D::DIRECTION, ep_addr, ep_type, max_packet_size, interval)
-            .map(|a| Endpoint::new(&self.bus_ptr, a, ep_type, max_packet_size, interval, audio_streaming))
+            .map(|a| {
+                Endpoint::new(
+                    &self.bus_ptr,
+                    a,
+                    ep_type,
+                    max_packet_size,
+                    interval,
+                    audio_streaming,
+                    None,
+                )
+            })
+    }
+
+    /// Allocates an endpoint with the specified direction and address.
+    ///
+    /// This directly delegates to [`UsbBus::alloc_ep`], so see that method for details. In most
+    /// cases classes should call the endpoint type specific methods instead.
+    pub fn alloc_with_sync<'a, D: EndpointDirection>(
+        &self,
+        ep_addr: Option<EndpointAddress>,
+        ep_type: EndpointType,
+        max_packet_size: u16,
+        interval: u8,
+        audio_streaming: bool,
+        sync_addr: u8,
+    ) -> Result<Endpoint<'_, B, D>> {
+        self.bus
+            .borrow_mut()
+            .alloc_ep_with_sync(
+                D::DIRECTION,
+                ep_addr,
+                ep_type,
+                max_packet_size,
+                interval,
+                sync_addr,
+            )
+            .map(|a| {
+                Endpoint::new(
+                    &self.bus_ptr,
+                    a,
+                    ep_type,
+                    max_packet_size,
+                    interval,
+                    audio_streaming,
+                    Some(sync_addr),
+                )
+            })
     }
 
     /// Allocates a control endpoint.
@@ -272,8 +330,14 @@ impl<B: UsbBus> UsbBusAllocator<B> {
         max_packet_size: u16,
         interval: u8,
     ) -> Endpoint<'_, B, D> {
-        self.alloc(None, EndpointType::Interrupt, max_packet_size, interval, false)
-            .expect("alloc_ep failed")
+        self.alloc(
+            None,
+            EndpointType::Interrupt,
+            max_packet_size,
+            interval,
+            false,
+        )
+        .expect("alloc_ep failed")
     }
 
     /// Allocates an isochronous endpoint.
@@ -290,10 +354,44 @@ impl<B: UsbBus> UsbBusAllocator<B> {
     pub fn isochronous<D: EndpointDirection>(
         &self,
         max_packet_size: u16,
-        audio_streaming: bool
+        audio_streaming: bool,
     ) -> Endpoint<'_, B, D> {
-        self.alloc(None, EndpointType::Isochronous, max_packet_size, 16, audio_streaming)
-            .expect("alloc_ep failed")
+        self.alloc(
+            None,
+            EndpointType::Isochronous,
+            max_packet_size,
+            16,
+            audio_streaming,
+        )
+        .expect("alloc_ep failed")
+    }
+
+    /// Allocates an isochronous endpoint.
+    ///
+    /// # Arguments
+    ///
+    /// * `max_packet_size` - Maximum packet size in bytes. Must be one of 8, 16, 32 or 64.
+    ///
+    /// # Panics
+    ///
+    /// Panics if endpoint allocation fails, because running out of endpoints or memory is not
+    /// feasibly recoverable.
+    #[inline]
+    pub fn isochronous_with_sync<D: EndpointDirection>(
+        &self,
+        max_packet_size: u16,
+        audio_streaming: bool,
+        sync_addr: u8,
+    ) -> Endpoint<'_, B, D> {
+        self.alloc_with_sync(
+            None,
+            EndpointType::IsocAsync,
+            max_packet_size,
+            1,
+            audio_streaming,
+            sync_addr,
+        )
+        .expect("alloc_ep failed")
     }
 }
 
